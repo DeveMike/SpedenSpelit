@@ -18,7 +18,9 @@ const byte lastPin =  5; // Last PinChangeInterrupt on D-bus
 
 */
 void initButtonsAndButtonInterrupts(void);
-
+void checkStartButton(void);  // Uusi funktio pelin aloituksen tarkistamiseksi
+extern bool gameStarted; // gameStarted on toisessa tiedostossa, mutta externin avulla voimme käyttää sitä myös täällä.
+// Se kertoo onko peli aloitettu (true = aloitettu, false = ei aloitettu).
 
 // Intoduce PCINT2_vect Interrupt SeRvice (ISR) function for Pin Change Interrupt.
 ISR(PCINT2_vect); 
