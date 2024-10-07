@@ -11,7 +11,7 @@ void initializeDisplay(void) {
     pinMode(latchPin, OUTPUT); // Asetetaan latch pinni lähtötilaan
     pinMode(clockPin, OUTPUT); // Asetetaan kellopinni lähtötilaan
     pinMode(dataPin, OUTPUT); // Asetetaan datapinni lähtötilaan
-    digi
+    digitalWrite(latchPin, LOW);  // Varmistetaan, että lähtö on alussa LOW
 }
 
 ////////// NÄYTÖN PÄIVITYS //////////
@@ -52,3 +52,4 @@ void clearDisplay() {
 
     digitalWrite(latchPin, HIGH); // Lukitaan data ja päivitetään näyttö tyhjäksi
 }
+
