@@ -1,4 +1,4 @@
-#include "sound.h" // 
+#include "sound.h" // Ääniefektit
 
 #define SPEAKER_PIN 6 // Kaiuttimen pinni
 
