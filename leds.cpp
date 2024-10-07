@@ -1,6 +1,6 @@
 #include "leds.h" // LEDien hallinta
 
-//////////  PINNIT //////////
+////////// LEDIEN PINNIT //////////
 const byte ledPins[] = {A1, A2, A3, A4};  // Ledit ovat pinneissä A1-A4
 byte lastLed = 255;  // Alustetaan arvolla joka ei ole minkään oikean ledin numero
 
