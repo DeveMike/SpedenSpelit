@@ -2,7 +2,7 @@
 #define LEDS_H
 #include <arduino.h> // Arduinon peruskirjasto
 
-void initializeLeds(); //  LEDit
+void initializeLeds(); // Alusta LEDit
 void setLed(byte ledNumber); // Sytytä LEDit
 void clearAllLeds(void); // Sammuta LEDit
 void setAllLeds(void); // Sytytä kaikki LEDit
