@@ -2,7 +2,7 @@
 
 #define SPEAKER_PIN 6 // Kaiuttimen pinni
 
-////////// NUOTTIEN TAAJUUDET MIKROSEKUNTEINA //////////
+////////// NUOTTIEN TAAJUUDET MIKROSEKUNTEINA 
 int BassTab[] = {3000, 1702, 1516, 1431, 1275, 1136, 1012}; // Bass 1~7
 
 ////////// KAIUTTIMEN ALOITUSFUNKTIO //////////
