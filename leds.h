@@ -1,6 +1,6 @@
 #ifndef LEDS_H
 #define LEDS_H
-#include <arduino.h> // Arduinon 
+#include <arduino.h> // Arduinon peruskirjasto
 
 void initializeLeds(); // Alusta LEDit
 void setLed(byte ledNumber); // Sytytä LEDit
