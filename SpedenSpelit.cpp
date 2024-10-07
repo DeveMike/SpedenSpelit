@@ -22,6 +22,7 @@ extern int hundredMultiplier; // Sadankertaiset pisteet
 extern volatile bool newTimerInterrupt; // Keskeytyksen event lippu
 extern unsigned long buttonPressStartTime; // Aika jolloin nappi painettiin alas
 extern bool buttonBeingHeld; // Pidetäänkö nappia pohjassa
+bool buttonPressedForCurrentLed = false; // Seuraa, onko nykyinen LEDin nappi painettu ajoissa
 
 ////////// KAHDEN SEKUNNIN PAINALLUS / PELI ALKAA ///////////
 const unsigned long startPressDuration = 2000;  // 2 sekuntia
@@ -33,6 +34,7 @@ void initializeGame() {
   gameJustStarted = true;  // Asetetaan peli juuri alkaneeksi
   currentLed = -1;         // Ei sytytettyjä LEDejä alussa
   buttonNumber = -1;       // Nollataan painallus
+  buttonPressedForCurrentLed = true; // Alussa ledi ei pala
 }
 
 ////////// KOMPONENTIEN ALUSTUS //////////
@@ -52,37 +54,28 @@ void initializeGameComponents(void) {
 
 ////////// PELIN ALOITUSEHDOT //////////
 void checkStartCondition(void) {
-    // Määritetään vilkkumisen aikaväli
     const unsigned long blinkInterval = 800; // LED ja Highscore vilkkuvat 800 ms välein
+    const unsigned long onDuration = 250;    // Aika kun LED ja highscore ovat päällä
     static unsigned long lastBlinkTime = 0; // Seurataan vilkkumista
-    static bool displayOn = true; // Onko näyttö päällä vai ei
-
     unsigned long currentTime = millis(); // Nykyinen aika millisekunteina
+    unsigned long elapsedTime = currentTime - lastBlinkTime; // Lasketaan aika viimeisestä vilkkumiseseta
 
     // A1 LED vilkkuu ennen pelin alkua
-    if (currentTime % 800 < 250) {
+    if (elapsedTime < onDuration) {
         setLed(0);  // LED A1 päälle
+
+        // Näytetään highscore. Jaetaan sadat ja yksiköt
+        int score = highscore.getHighscore();
+        int highscoreHundreds = score / 100;
+        int displayScore = score % 100;
+        updateShiftRegister(displayScore / 10, displayScore % 10, false, highscoreHundreds); // Päivitetään näyttö
+  
+    } else if (elapsedTime < blinkInterval) {
+        // LED ja näyttö pois päältä
+        clearAllLeds();  // Sammutetaan kaikki LEDit
+        clearDisplay();  // Tyhjennetään näyttö
     } else {
-        clearAllLeds();  // LED A1 sammutetaan jos 250 ms on kulunut
-    }
-
-    // Vilkutetaan Highscorea näytöllä ennen pelin alkua
-    if (currentTime - lastBlinkTime >= blinkInterval) {
-        lastBlinkTime = currentTime; // Päivitetään vilkuntajakso
-        displayOn = !displayOn;  // Päälle / pois
-
-        if (displayOn) {
-            // Näytetään highscore. Jaetaan sadat ja yksiköt
-            int score = highscore.getHighscore();
-            int highscoreHundreds = score / 100;
-            int displayScore = score % 100;
-
-            // Päivitetään näyttöä
-            updateShiftRegister(displayScore / 10, displayScore % 10, false, highscoreHundreds);
-        } else {
-            // Tyhjennetään näyttö jos displayOn on false
-            clearDisplay();
-        }
+        lastBlinkTime = currentTime; // Aloitetaan vilkkumissykli alusta
     }
 
     // Tarkistetaan onko D2 nappia painettu yli 2 sekuntia pelin aloittamiseksi
@@ -127,6 +120,8 @@ void checkGame(int pressedButton) {
     Serial.println("Oikea nappi painettu!");
     correctPressCount++;  // Lisätään oikea painallus
     sound(6);  // Soitetaan voittoääni
+
+    buttonPressedForCurrentLed = true; // Painallus on suoritettu ajoissa
 
     // Tarkistetaan jos pisteet ylittävät 99
     if (correctPressCount > 99) {
@@ -176,6 +171,16 @@ void handleGameLoop(void) {
         currentLed = newLed;  // Päivitetään nykyinen LED uudeksi arvotuksi LEDiksi
         clearAllLeds();  // Sammutetaan kaikki LEDit ennen uuden sytyttämistä
         setLed(currentLed);  // Sytytetään uusi LED
+
+        // Onko nykyistä LEDiä painettu ajoissa
+        if (!gameJustStarted && !buttonPressedForCurrentLed) {
+            Serial.println("Aikataulu ylittyi, peli päättyy.");
+            sound(0); // Soitetaan loser-ääni
+            endGame(); // Lopeta peli
+            return; // Lopetetaan käsittely
+        }
+
+        buttonPressedForCurrentLed = false; // Painallus ei suoritettu ajoissa
 
         // Näytetään pelin pisteet segmenttinäytöllä
         updateShiftRegister(correctPressCount / 10, correctPressCount % 10, false, hundredMultiplier);  // Päivitä tulos näytöllä
