@@ -15,4 +15,4 @@ void handleGameLoop(void); // Pelin pääsilmukka. Hallitsee pelin etenemistä
 void initializeTimer(void); // Alustaa Timer1:n ja keskeytykset
 void initializeGameComponents(void); // Alustaa pelin komponentit kuten napit ja LEDit
 
-#endif
+#endi
