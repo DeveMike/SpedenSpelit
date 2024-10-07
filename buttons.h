@@ -12,8 +12,3 @@ void initButtonsAndButtonInterrupts(void); // Alustaa napit ja niiden keskeytyks
 void checkStartButton(void);  // Uusi funktio pelin aloituksen tarkistamiseksi
 extern bool gameStarted; // Tämä muuttuja kertoo onko peli aloitettu (true = aloitettu, false = ei aloitettu)
 
-// Määritellään PCINT2_vect keskeytyspalvelurutiini Pin Change Interrupt keskeytykselle.
-ISR(PCINT2_vect); 
-
-#endif
-
