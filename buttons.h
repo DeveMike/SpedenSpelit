@@ -1,27 +1,19 @@
 #ifndef BUTTONS_H
 #define BUTTONS_H
-#include <arduino.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#include <arduino.h> // Arduinon peruskirjasto
+#include <avr/io.h> // I/O rekisterit
+#include <avr/interrupt.h> // Keskeytyksiin liittyvät funktiot ja makrot
 
+// Määritellään napinpainallusten keskeytyksiä varten käytettävät pinnit
+const byte firstPin = 2; // Ensimmäinen PinChangeInterrupt D-väylällä
+const byte lastPin =  5; // Viimeinen PinChangeInterrupt D-väylällä
 
-const byte firstPin = 2; // First PinChangeInterrupt on D-bus
-const byte lastPin =  5; // Last PinChangeInterrupt on D-bus
-
-/* 
-  initButtonsAndButtonInterrupts subroutine is called from Setup() function
-  during the initialization of Speden Spelit. This function does the following:
-  1) Initializes 4 button pins for the game = Arduino pins 2,3,4,5
-  2) Initializes 1 button pin for starting the game = Aruino pin 6
-  3) Enables PinChangeInterrupt on D-bus in a way that interrupt
-     is generated whenever some of pins 2,3,4,5,6 is connected to LOW state
-
-*/
-void initButtonsAndButtonInterrupts(void);
+void initButtonsAndButtonInterrupts(void); // Alustaa napit ja niiden keskeytykset
 void checkStartButton(void);  // Uusi funktio pelin aloituksen tarkistamiseksi
-extern bool gameStarted; // gameStarted on toisessa tiedostossa, mutta externin avulla voimme käyttää sitä myös täällä.
-// Se kertoo onko peli aloitettu (true = aloitettu, false = ei aloitettu).
+extern bool gameStarted; // Tämä muuttuja kertoo onko peli aloitettu (true = aloitettu, false = ei aloitettu)
 
-// Intoduce PCINT2_vect Interrupt SeRvice (ISR) function for Pin Change Interrupt.
+// Määritellään PCINT2_vect keskeytyspalvelurutiini Pin Change Interrupt keskeytykselle.
 ISR(PCINT2_vect); 
-#endif;
+
+#endif
+

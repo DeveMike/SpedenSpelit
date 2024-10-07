@@ -1,102 +1,129 @@
-#include "display.h"
-#include "buttons.h"
-#include "leds.h"
-#include "SpedenSpelit.h"
-#include <stdlib.h>  // Satunnaisluvun luomiseen
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#include <stdlib.h> // Standardi C-kirjasto
+#include <EEPROM.h> // EEPROM muisti tallennusta varten
+#include "display.h" // Näytön hallintaan liittyvät funktiot
+#include "buttons.h" // Napinpainallusten käsittely
+#include "leds.h" // LEDien hallinta
+#include "SpedenSpelit.h" // Pääohjelman otsikkotiedosto
+#include "highscore.h" // Highscore käsittely
+#include "sound.h" // Ääniefektit
 
+////////// VIRRANSÄÄSTÖTILA //////////
+unsigned long lastActivityTime = 0;  // Aika viimeisestä toiminnosta
+const unsigned long inactivityPeriod = 60000;  // odota 1 minuutti (60000 ms)
+bool deviceSleeping = false;  // Onko laite lepotilassa vai ei
+
+////////// PELIN TILAMUUTTUJAT JA KESKEYTYKSET //////////
 // Volatile muuttujat keskeytysten ja ohjelman viestintään
 volatile int buttonNumber = -1;           // Painetun napin tunnistus
 volatile bool newTimerInterrupt = false;  // Timer keskeytys
-volatile int randomLed = -1;  // Keskeytyksessä arvottu LED
-int currentLed = -1;  // Pitää kirjaa, mikä LED on tällä hetkellä sytytetty
+
+int currentLed = -1;  // Pitää kirjaa mikä LED on tällä hetkellä sytytetty
 int correctPressCount = 0;  // Oikeiden painallusten määrä
+int hundredMultiplier = 0;  // Seuraa, montako kertaa pistemäärä on ylittänyt 99
 float timerFrequency = 1.0;  // Timer1:n aloitustaajuus on 1 Hz
+bool gameStarted = false; // Onko peli käynnissä
+bool gameJustStarted = false;  // Peli on juuri aloitettu
 
-extern unsigned long buttonPressStartTime;  // Tämä viittaa buttons.cpp:ssä määriteltyyn muuttujaan
+Highscore highscore;  // Luodaan Highscore olio
 
+////////// SEGMENTTINÄYTÖN SIIRTOREKISRERIN PINNIT //////////
+int latchPin = 10;  // Kytketty ST_CP:hen 74HC595:ssä
+int clockPin = 11;  // Kytketty SH_CP:hen 74HC595:ssä
+int dataPin = 12;   // Kytketty DS:ään 74HC595:ssä
+
+////////// TAULUKKO NUMEROILLE 0-9 SEGMENTTINÄYTÖLLE //////////
+byte sevenSegDigits[] = {
+  B00111111, // 0
+  B00000110, // 1
+  B01011011, // 2
+  B01001111, // 3
+  B01100110, // 4
+  B01101101, // 5
+  B01111101, // 6
+  B00000111, // 7
+  B01111111, // 8
+  B01101111  // 9
+};
+
+////////// VIRRANSÄÄSTÖTILAN HALLINTA //////////
+void wakeUp() {
+    // Tyhjä funktio. Tämä herättää Arduinon lepotilasta
+}
+
+void sleepModeInterruptsSetup() {
+    // Alustetaan keskeytys joka herättää laitteen napista D2
+    attachInterrupt(digitalPinToInterrupt(2), wakeUp, LOW);
+}
+
+void enterSleepMode() {
+    Serial.println("Laitetaan laite lepotilaan...");
+
+    // Sammutetaan kaikki LEDit ja näyttö
+    clearAllLeds();
+    clearDisplay();
+
+    deviceSleeping = true;  // Asetetaan laite lepotilaan
+
+    // Alustetaan sleep mode
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_enable();
+
+    // Nollataan keskeytysliput
+    EIFR = bit (INTF0);
+
+    // Mahdollistetaan keskeytykset herättämään laite
+    sleepModeInterruptsSetup();
+
+    // Menään lepotilaan. Laite pysähtyy tässä kohtaa
+    sleep_mode();
+
+    // Tästä eteenpäin laite jatkaa, kun D2 on painettu ja se herää lepotilasta
+
+    sleep_disable();  // Poistetaan lepotila käytöstä
+    detachInterrupt(digitalPinToInterrupt(2));  // Poistetaan keskeytys käytöstä kun laite hereillä
+
+    deviceSleeping = false; // Laitteen tila pois lepotilasta
+    Serial.println("Laite heräsi lepotilasta.");
+    lastActivityTime = millis();  // Päivitetään viimeisin aktiivisuusaika jotta lepotila voidaan laskea uudestaan tarvittaessa
+}
+
+////////// SETUP //////////
 void setup() {
-  Serial.begin(9600);  // Alustetaan sarjayhteys
-  initButtonsAndButtonInterrupts();  // Alustetaan napit ja keskeytykset
-  initializeLeds();  // Alustetaan LEDit
-
-  randomSeed(analogRead(A0));  // Satunnaisluvun siemen
-  initializeTimer(1.0);  // Alustetaan Timer1 1 Hz taajuudella
+    initializeGameComponents(); // Alustetaan kaikki komponentit
+    initializeSpeaker(); // Alustetaan kaiutin
+    lastActivityTime = millis();  // Alustetaan viimeisin aktiivisuusaika
+    detachInterrupt(digitalPinToInterrupt(2)); // Varmistetaan, että ei ole päällekkäisiä keskeytyksiä
+    ///resetHighscore();  // Nollaa highscore (tätä käytetään vain testauksen aikana)
 }
 
+////////// LOOP //////////
 void loop() {
-  // Peli ei ole vielä alkanut, A1 vilkkuu
-  if (!gameStarted) {
-    // Vilkutetaan A1 LEDiä ennen pelin alkua
-    if (millis() % 500 < 250) {
-      setLed(0);  // A1 vastaa setLed(0)
-    } else {
-      clearAllLeds();  // Sammutetaan A1 välillä
+    unsigned long currentTime = millis(); // Tallennetaan nykyinen aika millisekunteina
+    // Tarkistetaan onko jotain nappia painettu
+    if (digitalRead(2) == LOW || digitalRead(3) == LOW || digitalRead(4) == LOW || digitalRead(5) == LOW) {
+        lastActivityTime = currentTime;  // Päivitetään viimeisin aktiivisuusaika kun nappia on painettu
     }
-
-    // Tarkistetaan, onko nappia 2 painettu yli 2 sekuntia pelin aloittamiseksi
-    checkStartButton();
-  }
-
-  // Kun peli käynnistyy, Timer1 arpoo uudet LEDit
-  if (gameStarted && newTimerInterrupt) {
-    newTimerInterrupt = false;  // Nollataan keskeytyksen lippu
-
-    // Varmistetaan, että uusi LED on eri kuin nykyinen LED
-    int newLed;
-    do {
-      newLed = random(0, 4);  // Arvotaan uusi LED (0-3)
-    } while (newLed == currentLed);  // Toistetaan, kunnes uusi LED on eri kuin nykyinen
-
-    currentLed = newLed;  // Päivitetään nykyinen LED arvotuksi LEDiksi
-    clearAllLeds();  // Sammutetaan kaikki LEDit ennen uuden sytyttämistä
-    setLed(currentLed);  // Sytytetään uusi LED
-  }
-
-  // Tarkistetaan, onko painallus tullut ja onko se oikea
-  if (gameStarted && buttonNumber >= 2 && buttonNumber <= 5) {
-    int pressedButton = buttonNumber - 2;  // Muutetaan pinniarvo vastaamaan LED-numeroa
     
-    if (pressedButton == currentLed) {
-      Serial.println("Oikea nappi painettu!");
-      correctPressCount++;  // Lisätään oikea painallus
-      
-      if (correctPressCount % 10 == 0) {
-        // Nopeutetaan ajastinta joka kymmenes oikea painallus
-        timerFrequency *= 1.1;  // Nopeutetaan taajuutta 10 %
-        initializeTimer(timerFrequency);  // Päivitetään ajastimen taajuus
-        Serial.print("Ajastintaajuus nousi: ");  // Tulostetaan uusi taajuus
-        Serial.print(timerFrequency, 2);  // Näytetään taajuus kahden desimaalin tarkkuudella
-        Serial.println(" Hz");
-      }
-      
-      buttonNumber = -1;  // Nollataan painallus
-    } else {
-      Serial.println("Väärä nappi painettu!");
+    // Tarkistetaan onko laite lepotilassa
+    if (!deviceSleeping) {
+        // Jos peli ei ole vielä alkanut niin tarkistetaan aloitusehdot
+        if (!gameStarted) {
+            checkStartCondition();
+        }
+        // Jos peli on käynnissä niin suoritetaan pelin pääsilmukka
+        if (gameStarted) {
+            handleGameLoop();
+        }
+        // Tarkistetaan, onko kulunut tarpeeksi aikaa viimeisestä napin painalluksesta
+        if (currentTime - lastActivityTime >= inactivityPeriod) {
+            enterSleepMode();  // Laitetaan laite lepotilaan
+        }
     }
-  }
 }
 
-void initializeTimer(float frequency) {
-  // Lasketaan Timer1:n rekisteriarvot halutulle taajuudelle
-  cli();  // Estetään keskeytykset konfiguroinnin ajaksi
-  TCCR1A = 0;  // Timer1 normaali tila
-  TCCR1B = 0;  // Nollataan Timer1
-  TCNT1 = 0;   // Nollataan Timerin laskuri
-
-  // Lasketaan keskeytysväli
-  int compareMatch = (int)(16000000 / (1024 * frequency)) - 1;
-  
-  OCR1A = compareMatch;  // Asetetaan ajastimen keskeytysarvo
-  TCCR1B |= (1 << WGM12);  // CTC-tila
-  TCCR1B |= (1 << CS12) | (1 << CS10);  // Asetetaan prescaler 1024
-  
-  TIMSK1 |= (1 << OCIE1A);  // Mahdollistetaan Timer1 Compare Match A keskeytys
-  sei();  // Mahdollistetaan keskeytykset
-}
-
-ISR(TIMER1_COMPA_vect) {
-  randomLed = random(0, 4);  // Arvotaan uusi LED (0-3)
-  newTimerInterrupt = true;  // Asetetaan keskeytyslippu
+////////// TÄMÄ ON DEBUGGAUSTA VARTEN //////////
+void resetHighscore() {
+  // Nollataan high score tallentamalla arvo 0 EEPROM muistiin
+  EEPROM.update(0, 0);             // Alempi tavu
+  EEPROM.update(1, 0);             // Ylempi tavu
 }

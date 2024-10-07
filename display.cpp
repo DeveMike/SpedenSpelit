@@ -1,31 +1,54 @@
-#include "display.h"
+#include "display.h" // Näytön hallintaan liittyvät funktiot
+#include <Arduino.h> // Arduinon peruskirjasto
 
-// Alustaa 7-segmenttinäytön
+extern int latchPin; // Siirtorekisterin latch pinni
+extern int clockPin; // Siirtorekisterin kellopinni
+extern int dataPin; // Siirtorekisterin datapinni
+extern byte sevenSegDigits[]; // Taulukko 7-segmenttinäytön numeroille
+
+////////// NÄYTÖN ALOITUS //////////
 void initializeDisplay(void) {
-  // See requirements for this function from display.h
-  pinMode(12, OUTPUT); // Reset
-  pinMode(11, OUTPUT); // Shift Clock
-  pinMode(10, OUTPUT); // Latch Clock
-  pinMode(9, OUTPUT);  // Out Enable
-  pinMode(8, OUTPUT);  // Serial Input
+    pinMode(latchPin, OUTPUT); // Asetetaan latch pinni lähtötilaan
+    pinMode(clockPin, OUTPUT); // Asetetaan kellopinni lähtötilaan
+    pinMode(dataPin, OUTPUT); // Asetetaan datapinni lähtötilaan
+    digitalWrite(latchPin, LOW);  // Varmistetaan, että lähtö on alussa LOW
 }
 
-// Kirjoittaa yhden numeron 7-segmenttinäyttöön
-void writeByte(uint8_t number, bool last) {
-  // See requirements for this function from display.h
-  // TODO: Lisää koodi kirjoittamaan bitti
+////////// NÄYTÖN PÄIVITYS //////////
+void updateShiftRegister(int tensDigit, int onesDigit, bool showDots, int hundreds) {
+  digitalWrite(latchPin, LOW); // Valmistellaan datan lähetys siirtorekisteriin
+
+  byte onesSegment = sevenSegDigits[onesDigit]; // Haetaan oikean segmentin arvo
+  byte tensSegment = sevenSegDigits[tensDigit]; // Haetaan vasemman segmentin arvo
+
+  // Jos halutaan näyttää pisteet Highscore tilanteessa
+  if (showDots) {
+    onesSegment |= B10000000;  // Sytytetään oikean segmentin piste
+    tensSegment |= B10000000;  // Sytytetään vasemman segmentin piste
+  }
+
+  // Lisätään logiikka sadan pisteen ylityksen ilmaisuun
+  if (hundreds == 1) {
+    onesSegment |= B10000000;  // Sytytetään oikean segmentin piste
+  } else if (hundreds >= 2) {
+    onesSegment |= B10000000;  // Sytytetään oikean segmentin piste
+    tensSegment |= B10000000;  // Sytytetään vasemman segmentin piste
+  }
+
+  // Siirretään segmenttien arvot siirtorekisteriin
+  shiftOut(dataPin, clockPin, MSBFIRST, onesSegment);  // Lähetä oikea numero
+  shiftOut(dataPin, clockPin, MSBFIRST, tensSegment);  // Lähetä vasen numero
+
+  digitalWrite(latchPin, HIGH); // Lukitaan data siirtorekisteriin ja päivitetään näyttö
 }
 
-// Kirjoittaa numerot 0-99 7-segmenttinäyttöön
-void writeHighAndLowNumber(uint8_t tens, uint8_t ones) {
-  // TODO: Lisää koodi kirjoittamaan kympit ja ykköset
-  // See requirements for this function from display.h
+////////// NÄYTÖN TYHJENNYS //////////
+void clearDisplay() {
+    digitalWrite(latchPin, LOW); // Valmistellaan datan lähetys siirtorekisteriin
 
-}
+    // Lähetetään nollat molemmille segmenteille
+    shiftOut(dataPin, clockPin, MSBFIRST, 0x00);  // Tyhjennä oikea numero
+    shiftOut(dataPin, clockPin, MSBFIRST, 0x00);  // Tyhjennä vasen numero
 
-// Näyttää tuloksen 7-segmenttinäytössä
-void showResult(byte result) {
-  // Erota kympit ja ykköset ja kutsu writeHighAndLowNumber
-  // See requirements for this function from display.h
-
+    digitalWrite(latchPin, HIGH); // Lukitaan data ja päivitetään näyttö tyhjäksi
 }

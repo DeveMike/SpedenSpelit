@@ -1,18 +1,16 @@
-#include "buttons.h"
-
+#include "buttons.h" // Napinpainallusten käsittely
 
 extern volatile int buttonNumber;  // Käytetään buttonNumber tilan viestimiseen
-bool gameStarted = false;          // Seurataan onko peli käynnissä
+extern bool gameStarted;  // Viitataan pääohjelmassa määriteltyyn muuttujaan
 unsigned long buttonPressStartTime = 0;   // Tallennetaan painalluksen aloitusaika
-const unsigned long startPressDuration = 2000;  // 2 sec painallus aloittaa pelin
 bool buttonBeingHeld = false;  // Muuttuja seuraa onko nappi pidetty alas painettuna
 
-// Debouncingin ajastin ja kesto
+////////// DEBOUNCE //////////
 unsigned long lastDebounceTime = 0;
-const unsigned long debounceDelay = 100;  // 100 millisekunnin debounce viive
+const unsigned long debounceDelay = 300;  // 300 millisekunnin debounce viive
 
-void initButtonsAndButtonInterrupts(void)
-{
+////////// PAINIKKEIDEN JA KESKEYTYSTEN ALUSTUS //////////
+void initButtonsAndButtonInterrupts(void) {
     // Alustetaan pelin painikkeet (pinnit 2-5) sisääntuloiksi
     for (byte pin = firstPin; pin <= lastPin; pin++) {
         pinMode(pin, INPUT_PULLUP);  // Sisäinen pull-up vastus käytössä
@@ -24,6 +22,7 @@ void initButtonsAndButtonInterrupts(void)
     //pinneille 2, 3, 4 ja 5, jotta ne huomaavat muutokset
 }
 
+////////// KESKEYTYKSEN KÄSITTELY JA DEBOUNCING //////////
 ISR(PCINT2_vect) {
     // Tarkistetaan onko debounce aika kulunut
     unsigned long currentTime = millis();
@@ -38,29 +37,3 @@ ISR(PCINT2_vect) {
         }
     }
 }
-
-// Tarkistetaan, onko pinni 2 painettuna vähintään 2 sekuntia
-void checkStartButton(void) {
-    if (!gameStarted) {
-        if (digitalRead(2) == LOW) {
-            // Jos nappi on painettuna ja ei ole jo pidettynä
-            if (!buttonBeingHeld) {
-                buttonPressStartTime = millis();  // Tallennetaan painalluksen aloitusaika
-                buttonBeingHeld = true;  // Merkitään, että nappi on nyt alas painettuna
-            }
-
-            // Jos nappia on pidetty painettuna vähintään 2 sekuntia, peli alkaa
-            if (millis() - buttonPressStartTime >= startPressDuration) {
-                Serial.println("Peli alkaa!");
-                gameStarted = true;  // Peli alkaa
-                buttonNumber = -1;   // Nollataan buttonNumber
-                buttonBeingHeld = false;  // Nollataan painalluksen tila
-            }
-        } else {
-            // Jos nappia ei pidetä painettuna, nollataan ajastin
-            buttonPressStartTime = 0;
-            buttonBeingHeld = false;  // Nappi vapautettiin, nollataan tila
-        }
-    }
-}
-

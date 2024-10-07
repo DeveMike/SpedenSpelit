@@ -1,47 +1,18 @@
 #ifndef SPEDENSPELIT_H
 #define SPEDENSPELIT_H
-#include <arduino.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#include <arduino.h> // Arduinon peruskirjasto
+#include <avr/io.h> // I/O rekisterit
+#include <avr/interrupt.h> // Keskeytyksiin liittyvät funktiot ja makrot
+#include <avr/sleep.h> // Mikrokontrollerin lepotilat
+#include <avr/power.h> // Virranhallinnan funktiot
 
-/*
-  initializeTimer() subroutine intializes Arduino Timer1 module to
-  give interrupts at rate 1Hz
-  
-*/
-void initializeTimer(void);
-// Intoduce TIMER1_COMPA_vect Interrupt SeRvice (ISR) function for timer.
-ISR(TIMER1_COMPA_vect);
-
-/*
-  initializeGame() subroutine is used to initialize all variables
-  needed to store random numbers and player button push data.
-  This function is called from startTheGame() function.
-  
-*/
-void initializeGame(void);
-
-/*
-  checkGame() subroutine is used to check the status
-  of the Game after each player button press.
-  
-  If the latest player button press is wrong, the game stops
-  and if the latest press was right, game display is incremented
-  by 1.
-  
-  Parameters
-  byte lastButtonPress of the player 0 or 1 or 2 or 3
-  
-*/
-void checkGame(byte);
-
-
-/*
-  startTheGame() subroutine calls InitializeGame()
-  function and enables Timer1 interrupts to start
-  the Game.
-*/
-void startTheGame(void);
-
+void endGame(); // Päättää pelin ja tallentaa Highscoren
+void initializeGame(); // Alustaa pelin muuttujat
+void checkGame(int pressedButton); // Tarkistaa pelaajan painalluksen oikeellisuuden
+void startTheGame(void); // Käynnistää pelin alusta
+void checkStartCondition(void); // Täyttyvätkö pelin aloitusehdot
+void handleGameLoop(void); // Pelin pääsilmukka. Hallitsee pelin etenemistä
+void initializeTimer(void); // Alustaa Timer1:n ja keskeytykset
+void initializeGameComponents(void); // Alustaa pelin komponentit kuten napit ja LEDit
 
 #endif
