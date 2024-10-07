@@ -3,7 +3,7 @@
 
 #include <EEPROM.h> // EEPROM muisti tallennusta varten
 
-class Highscore {
+class  {
 public:
   Highscore(); // Alustetaan Highscore olio
   void setHighscore(int newScore); // Uusi highscore
