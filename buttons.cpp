@@ -35,5 +35,4 @@ ISR(PCINT2_vect) {
                 break;  // Lopeta tarkistus ensimmäisen painetun napin kohdalla
             }
         }
-    }
-}
+    
