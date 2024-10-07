@@ -2,7 +2,7 @@
 
 ////////// ENNÄTYKSEN ALUSTUS //////////
 Highscore::Highscore() {
-  // Voimme alustaa  0, jos EEPROM:ssa ei ole arvoa
+  // Voimme alustaa highscoreksi 0, jos EEPROM:ssa ei ole arvoa
   if (EEPROM.read(highscoreAddress) == 0xFF) {
     setHighscore(0); // Asetetaan highscore arvoksi 0
   }
