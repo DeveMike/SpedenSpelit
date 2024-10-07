@@ -75,7 +75,8 @@ void enterSleepMode() {
     sleepModeInterruptsSetup();
 
     // Menään lepotilaan. Laite pysähtyy tässä kohtaa
-    sleep_mode();
+    endGame(); // Lopeta peli
+    sleep_mode(); // Mene nukkumaan
 
     // Tästä eteenpäin laite jatkaa, kun D2 on painettu ja se herää lepotilasta
 
