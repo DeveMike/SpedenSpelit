@@ -1,18 +1,18 @@
 #ifndef BUTTONS_H
 #define BUTTONS_H
-#include <arduino.h> // Arduinon peruskirjasto
-#include <avr/io.h> // I/O rekisterit
-#include <avr/interrupt.h> // Keskeytyksiin liittyvät funktiot ja makrot
+#include <arduino.h> // Arduino core library
+#include <avr/io.h> // I/O registers
+#include <avr/interrupt.h> // Functions and macros related to interrupts
 
-// Määritellään napinpainallusten keskeytyksiä varten käytettävät pinnit
-const byte firstPin = 2; // Ensimmäinen PinChangeInterrupt D-väylällä
-const byte lastPin =  5; // Viimeinen PinChangeInterrupt D-väylällä
+// Define the pins used for button press interrupts
+const byte firstPin = 2; // First Pin Change Interrupt on port D
+const byte lastPin =  5; // Last Pin Change Interrupt on port D
 
-void initButtonsAndButtonInterrupts(void); // Alustaa napit ja niiden keskeytykset
-void checkStartButton(void);  // Uusi funktio pelin aloituksen tarkistamiseksi
-extern bool gameStarted; // Tämä muuttuja kertoo onko peli aloitettu (true = aloitettu, false = ei aloitettu)
+void initButtonsAndButtonInterrupts(void); // Initializes buttons and their interrupts
+void checkStartButton(void);  // New function to check the game start condition
+extern bool gameStarted; // This variable indicates whether the game has started (true = started, false = not started)
 
-// Määritellään PCINT2_vect keskeytyspalvelurutiini Pin Change Interrupt keskeytykselle.
+// Define the ISR for the PCINT2_vect Pin Change Interrupt
 ISR(PCINT2_vect); 
 
 #endif
