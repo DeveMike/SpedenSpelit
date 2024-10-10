@@ -1,22 +1,22 @@
-#include "sound.h" // Ääniefektit
+#include "sound.h" // Sound effects
 
-#define SPEAKER_PIN 6 // Kaiuttimen pinni
+#define SPEAKER_PIN 6 // Speaker pin
 
-////////// NUOTTIEN TAAJUUDET MIKROSEKUNTEINA //////////
-int BassTab[] = {3000, 1702, 1516, 1431, 1275, 1136, 1012}; // Bass 1~7
+////////// NOTE FREQUENCIES IN MICROSECONDS //////////
+int BassTab[] = {3000, 1702, 1516, 1431, 1275, 1136, 1012}; // Bass notes 1~7
 
-////////// KAIUTTIMEN ALOITUSFUNKTIO //////////
+////////// SPEAKER INITIALIZATION FUNCTION //////////
 void initializeSpeaker(void) {
-    pinMode(SPEAKER_PIN, OUTPUT); // Määritetään kaiuttimen pinni
-    digitalWrite(SPEAKER_PIN, LOW); // Varmistetaan, että kaiutin on aluksi pois päältä
+    pinMode(SPEAKER_PIN, OUTPUT); // Set the speaker pin as output
+    digitalWrite(SPEAKER_PIN, LOW); // Ensure the speaker is off initially
 }
 
-////////// ÄÄNIEFEKTIEN TOISTO //////////
+////////// PLAY SOUND EFFECT //////////
 void sound(uint8_t note_index) {
-    for (int i = 0; i < 100; i++) { // Toistetaan äänen sykli 100 kertaa
-        digitalWrite(SPEAKER_PIN, HIGH); // Kaiutin päälle
-        delayMicroseconds(BassTab[note_index]); // Odotetaan taulukosta haetun tajuuden ajan
-        digitalWrite(SPEAKER_PIN, LOW); // Kaiutin pois päältä
-        delayMicroseconds(BassTab[note_index]); // Odotetaan taulukosta haetun tajuuden ajan
+    for (int i = 0; i < 100; i++) { // Repeat the sound cycle 100 times
+        digitalWrite(SPEAKER_PIN, HIGH); // Turn the speaker on
+        delayMicroseconds(BassTab[note_index]); // Wait based on the frequency from the table
+        digitalWrite(SPEAKER_PIN, LOW); // Turn the speaker off
+        delayMicroseconds(BassTab[note_index]); // Wait based on the frequency from the table
     }
 }
