@@ -1,241 +1,241 @@
-#include "SpedenSpelit.h" // Pääohjelman otsikkotiedosto
-#include "display.h" // Näytön hallintaan liittyvät funktiot
-#include "buttons.h" // Napinpainallusten käsittely
-#include "leds.h" // LEDien hallinta
-#include "highscore.h" // Highscore käsittely
-#include "sound.h" // Ääniefektit
-#include <EEPROM.h> // EEPROM muisti tallennusta varten
-#include <Arduino.h> // Arduinon peruskirjasto
+#include "SpedenSpelit.h"  // Main program header file
+#include "display.h"       // Functions for managing the display
+#include "buttons.h"       // Handling button presses
+#include "leds.h"          // LED control
+#include "highscore.h"     // Highscore management
+#include "sound.h"         // Sound effects
+#include <EEPROM.h>        // For EEPROM memory storage
+#include <Arduino.h>       // Basic Arduino library
 
-extern int latchPin; // Siirtorekisterin latch pinni
-extern int clockPin; // Siirtorekisterin kellopinni
-extern int dataPin; // Siirtorekisterin datapinni
-extern byte sevenSegDigits[]; // Taulukko 7-segmenttinäytön numeroille
-extern int correctPressCount; // Oikeiden painallusten määrä
-extern bool gameJustStarted; // Peli on juuri alkanut
-extern bool gameStarted; // Peli on aloitettu
-extern Highscore highscore; // Highscore
-extern float timerFrequency; // Ajastimen taajuus
-extern int currentLed; // Tällä hetkellä aktiivinen LED
-extern int buttonNumber; // Tieto painetusta napista
-extern int hundredMultiplier; // Sadankertaiset pisteet
-extern volatile bool newTimerInterrupt; // Keskeytyksen event lippu
-extern unsigned long buttonPressStartTime; // Aika jolloin nappi painettiin alas
-extern bool buttonBeingHeld; // Pidetäänkö nappia pohjassa
-bool buttonPressedForCurrentLed = false; // Seuraa, onko nykyinen LEDin nappi painettu ajoissa
+extern int latchPin;       // Shift register latch pin
+extern int clockPin;       // Shift register clock pin
+extern int dataPin;        // Shift register data pin
+extern byte sevenSegDigits[];  // Array for 7-segment display digits
+extern int correctPressCount;  // Number of correct button presses
+extern bool gameJustStarted;   // Flag indicating the game has just started
+extern bool gameStarted;       // Flag indicating the game is active
+extern Highscore highscore;    // Highscore object
+extern float timerFrequency;   // Timer frequency
+extern int currentLed;         // The currently active LED
+extern int buttonNumber;       // The number of the button pressed
+extern int hundredMultiplier;  // Hundreds points multiplier
+extern volatile bool newTimerInterrupt;  // Interrupt event flag
+extern unsigned long buttonPressStartTime;  // Timestamp for when button was pressed
+extern bool buttonBeingHeld;   // Flag to check if button is being held down
+bool buttonPressedForCurrentLed = false;  // Track if the button for the current LED was pressed in time
 
-////////// KAHDEN SEKUNNIN PAINALLUS / PELI ALKAA ///////////
-const unsigned long startPressDuration = 2000;  // 2 sekuntia
+////////// 2-SECOND PRESS TO START GAME //////////
+const unsigned long startPressDuration = 2000;  // 2 seconds
 
-////////// PELIN ALUSTUS //////////
+////////// GAME INITIALIZATION //////////
 void initializeGame() {
-  correctPressCount = 0;   // Nollataan oikeiden painallusten määrä
-  timerFrequency = 1.0;    // Alustetaan timerin taajuus
-  gameJustStarted = true;  // Asetetaan peli juuri alkaneeksi
-  currentLed = -1;         // Ei sytytettyjä LEDejä alussa
-  buttonNumber = -1;       // Nollataan painallus
-  buttonPressedForCurrentLed = true; // Alussa ledi ei pala
+  correctPressCount = 0;   // Reset correct press count
+  timerFrequency = 1.0;    // Initialize timer frequency
+  gameJustStarted = true;  // Set flag indicating game has just started
+  currentLed = -1;         // No LED is lit at the start
+  buttonNumber = -1;       // Reset button press
+  buttonPressedForCurrentLed = true;  // No LED lit initially
 }
 
-////////// KOMPONENTIEN ALUSTUS //////////
+////////// INITIALIZE GAME COMPONENTS //////////
 void initializeGameComponents(void) {
     pinMode(latchPin, OUTPUT);
     pinMode(clockPin, OUTPUT);
     pinMode(dataPin, OUTPUT);
 
-    Serial.begin(9600);  // Alustetaan sarjayhteys
-    initButtonsAndButtonInterrupts();  // Alustetaan napit ja keskeytykset
-    initializeLeds();  // Alustetaan LEDit
+    Serial.begin(9600);  // Initialize serial communication
+    initButtonsAndButtonInterrupts();  // Initialize buttons and interrupts
+    initializeLeds();  // Initialize LEDs
 
-    randomSeed(analogRead(A0));  // Satunnaisluvun siemen
-    timerFrequency = 1.0;  // Asetetaan aloitustaajuus
-    initializeTimer();  // Alustetaan Timer1 1 Hz taajuudella
+    randomSeed(analogRead(A0));  // Seed random number generator
+    timerFrequency = 1.0;  // Set starting frequency
+    initializeTimer();  // Initialize Timer1 with 1 Hz frequency
 }
 
-////////// PELIN ALOITUSEHDOT //////////
+////////// CHECK GAME START CONDITIONS //////////
 void checkStartCondition(void) {
-    const unsigned long blinkInterval = 800; // LED ja Highscore vilkkuvat 800 ms välein
-    const unsigned long onDuration = 250;    // Aika kun LED ja highscore ovat päällä
-    static unsigned long lastBlinkTime = 0; // Seurataan vilkkumista
-    unsigned long currentTime = millis(); // Nykyinen aika millisekunteina
-    unsigned long elapsedTime = currentTime - lastBlinkTime; // Lasketaan aika viimeisestä vilkkumiseseta
+    const unsigned long blinkInterval = 800;  // LEDs and Highscore blink every 800ms
+    const unsigned long onDuration = 250;     // Duration LEDs and highscore stay on
+    static unsigned long lastBlinkTime = 0;   // Track last blink time
+    unsigned long currentTime = millis();     // Current time in milliseconds
+    unsigned long elapsedTime = currentTime - lastBlinkTime;  // Time since the last blink
 
-    // A1 LED vilkkuu ennen pelin alkua
+    // A1 LED blinks before game starts
     if (elapsedTime < onDuration) {
-        setLed(0);  // LED A1 päälle
+        setLed(0);  // Turn on LED A1
 
-        // Näytetään highscore. Jaetaan sadat ja yksiköt
+        // Display highscore. Divide hundreds and units
         int score = highscore.getHighscore();
         int highscoreHundreds = score / 100;
         int displayScore = score % 100;
-        updateShiftRegister(displayScore / 10, displayScore % 10, false, highscoreHundreds); // Päivitetään näyttö
+        updateShiftRegister(displayScore / 10, displayScore % 10, false, highscoreHundreds);  // Update display
   
     } else if (elapsedTime < blinkInterval) {
-        // LED ja näyttö pois päältä
-        clearAllLeds();  // Sammutetaan kaikki LEDit
-        clearDisplay();  // Tyhjennetään näyttö
+        // Turn off LEDs and display
+        clearAllLeds();  // Turn off all LEDs
+        clearDisplay();  // Clear the display
     } else {
-        lastBlinkTime = currentTime; // Aloitetaan vilkkumissykli alusta
+        lastBlinkTime = currentTime;  // Reset the blink cycle
     }
 
-    // Tarkistetaan onko D2 nappia painettu yli 2 sekuntia pelin aloittamiseksi
+    // Check if button D2 is held for more than 2 seconds to start the game
     if (digitalRead(2) == LOW) {
         if (!buttonBeingHeld) {
-            buttonPressStartTime = currentTime; // Painallus alkoi
-            buttonBeingHeld = true; // Merkitään nappi painetuksi
-            Serial.println("Nappi D2 painettu alas");
+            buttonPressStartTime = currentTime; // Button press started
+            buttonBeingHeld = true;  // Mark button as held
+            Serial.println("Button D2 pressed");
         }
 
-        // Jos nappia pidetään pohjassa yli 2 sekuntia = peli käynnistyy
+        // If the button is held for more than 2 seconds, the game starts
         if (currentTime - buttonPressStartTime >= startPressDuration) {
-            Serial.println("Pelin käynnistys");
-            clearAllLeds();  // Sammutetaan kaikki LEDit ennen pelin alkua
-            clearDisplay();  // Tyhjennetään näyttö
-            sound(4);        // Soitetaan aloitusääni
-            delay(700);      // Odotetaan 700 ms ennen pelin alkua
-            startTheGame();  // Kutsutaan startTheGame funktiota
-            buttonBeingHeld = false; // Nollataan painallus
+            Serial.println("Starting the game");
+            clearAllLeds();  // Turn off all LEDs before game start
+            clearDisplay();  // Clear the display
+            sound(4);        // Play start sound
+            delay(700);      // Wait 700ms before starting the game
+            startTheGame();  // Call the function to start the game
+            buttonBeingHeld = false;  // Reset button hold
         }
     } else {
-        // Jos nappi vapautetaan ennen 2 sekuntia = nollataan tila
+        // If the button is released before 2 seconds, reset the state
         if (buttonBeingHeld) {
-            Serial.println("Nappi D2 vapautettu ennen 2 sekuntia");
+            Serial.println("Button D2 released before 2 seconds");
         }
-        buttonBeingHeld = false; // Nollataan painallus
-        buttonPressStartTime = 0; // Nollataan aika
+        buttonBeingHeld = false;  // Reset button hold
+        buttonPressStartTime = 0; // Reset time
     }
 }
 
-////////// PELIN KÄYNNISTYS //////////
+////////// START THE GAME //////////
 void startTheGame(void) {
-    initializeGame();       // Alustetaan pelin muuttujat
-    initializeTimer();      // Käynnistetään Timer1 keskeytykset
-    gameStarted = true;     // Asetetaan peli käynnistyneeksi
+    initializeGame();       // Initialize game variables
+    initializeTimer();      // Start Timer1 interrupts
+    gameStarted = true;     // Mark the game as started
 }
 
-////////// PELIN SEURANTA JA PISTEET //////////
+////////// GAME CHECK AND SCORE MANAGEMENT //////////
 void checkGame(int pressedButton) {
-  // Onko painettu nappi oikea
+  // Check if the correct button was pressed
   if (pressedButton == currentLed) {
-    Serial.println("Oikea nappi painettu!");
-    correctPressCount++;  // Lisätään oikea painallus
-    sound(6);  // Soitetaan voittoääni
+    Serial.println("Correct button pressed!");
+    correctPressCount++;  // Increment correct press count
+    sound(6);  // Play victory sound
 
-    buttonPressedForCurrentLed = true; // Painallus on suoritettu ajoissa
+    buttonPressedForCurrentLed = true;  // The button was pressed in time
 
-    // Tarkistetaan jos pisteet ylittävät 99
+    // Check if the score exceeds 99
     if (correctPressCount > 99) {
-      correctPressCount = 0;  // Nollataan pistemäärä ylityksen jälkeen
-      hundredMultiplier++;    // Lisätään sadan pisteen ylitys
+      correctPressCount = 0;  // Reset score after exceeding 99
+      hundredMultiplier++;    // Increase hundred-point multiplier
     }
 
-    // Näytetään päivitetty pistemäärä näytöllä desimaalipilkulla
+    // Update the display with the current score, using a decimal point
     updateShiftRegister(correctPressCount / 10, correctPressCount % 10, false, hundredMultiplier);
 
-    // Nopeutetaan peliä 10 % jokaisen kymmenennen oikean painalluksen jälkeen.
+    // Speed up the game by 10% after every 10 correct presses
     if (correctPressCount % 10 == 0 && correctPressCount != 0) {
-      timerFrequency *= 1.1;   // Taajuus nousee 10 %
-      initializeTimer();       // Uusi taajuus
-      Serial.print("Ajastintaajuus nousi: ");
-      Serial.print(timerFrequency, 2); // Tulostetaan uusi ajastintaajuus kahden desimaalin tarkkuudella
+      timerFrequency *= 1.1;   // Increase frequency by 10%
+      initializeTimer();       // Set new frequency
+      Serial.print("Timer frequency increased to: ");
+      Serial.print(timerFrequency, 2); // Print new frequency with 2 decimal places
       Serial.println(" Hz");
     }
 
-    buttonNumber = -1;  // Nollataan painallus
+    buttonNumber = -1;  // Reset button press
   } else {
-    // Jos painettiin väärää nappia, peli päättyy
-    Serial.println("Väärä nappi painettu! Peli päättyy.");
-    sound(0);  // Soitetaan loser-ääni
-    endGame();  // Peli loppuu
+    // If the wrong button is pressed, the game ends
+    Serial.println("Wrong button pressed! Game over.");
+    sound(0);  // Play loser sound
+    endGame();  // End the game
   }
 }
 
-////////// PELIN PÄÄLOOP JA LED-arvonta //////////
+////////// MAIN GAME LOOP & LED SELECTION //////////
 void handleGameLoop(void) {
-    // Kun peli käynnistyy ensimmäistä kertaa niin odotetaan 1 sekunti
+    // When the game starts for the first time, wait 1 second
     if (gameJustStarted) {
-        delay(1000);  // 1 sekunnin viive pelin käynnistyttyä
-        gameJustStarted = false;  // Tämä tehdään vain kerran pelin alussa
+        delay(1000);  // 1 second delay at game start
+        gameJustStarted = false;  // Only do this once at the start
     }
 
-    // Kun peli on käynnissä niin Timer1 arpoo uudet LEDit
+    // While the game is running, Timer1 picks new LEDs
     if (newTimerInterrupt) {
-        newTimerInterrupt = false;  // Nollataan keskeytykset
+        newTimerInterrupt = false;  // Reset interrupt flag
 
-        // Varmistetaan, että uusi LED on eri kuin nykyinen LED
+        // Ensure the new LED is different from the current LED
         int newLed;
         do {
-            newLed = random(0, 4);  // Arvotaan uusi LED (0-3)
-        } while (newLed == currentLed);  // Toistetaan arvonta kunnes uusi LED on eri kuin nykyinen
+            newLed = random(0, 4);  // Pick a new LED (0-3)
+        } while (newLed == currentLed);  // Repeat if the new LED is the same as the current one
 
-        currentLed = newLed;  // Päivitetään nykyinen LED uudeksi arvotuksi LEDiksi
-        clearAllLeds();  // Sammutetaan kaikki LEDit ennen uuden sytyttämistä
-        setLed(currentLed);  // Sytytetään uusi LED
+        currentLed = newLed;  // Set the current LED to the newly selected LED
+        clearAllLeds();  // Turn off all LEDs before lighting a new one
+        setLed(currentLed);  // Light the new LED
 
-        // Onko nykyistä LEDiä painettu ajoissa
+        // Check if the current LED's button was pressed in time
         if (!gameJustStarted && !buttonPressedForCurrentLed) {
-            Serial.println("Aikataulu ylittyi, peli päättyy.");
-            sound(0); // Soitetaan loser-ääni
-            endGame(); // Lopeta peli
-            return; // Lopetetaan käsittely
+            Serial.println("Time exceeded, game over.");
+            sound(0);  // Play loser sound
+            endGame();  // End the game
+            return;  // Exit function
         }
 
-        buttonPressedForCurrentLed = false; // Painallus ei suoritettu ajoissa
+        buttonPressedForCurrentLed = false;  // Reset the press status for the current LED
 
-        // Näytetään pelin pisteet segmenttinäytöllä
-        updateShiftRegister(correctPressCount / 10, correctPressCount % 10, false, hundredMultiplier);  // Päivitä tulos näytöllä
+        // Display the game score on the 7-segment display
+        updateShiftRegister(correctPressCount / 10, correctPressCount % 10, false, hundredMultiplier);  // Update the score on the display
     }
 
-    // Tarkistetaan onko paienttu ja onko se oikea
+    // Check if a button is pressed and if it's the correct one
     if (buttonNumber >= 2 && buttonNumber <= 5) {
-        int pressedButton = buttonNumber - 2;  // Muutetaan painetun napin numero vastaamaan LED-numeroa (0-3)
-        checkGame(pressedButton);              // Tarkistetaan checkGame funktiolla painalluksen oikeellisuus
-        buttonNumber = -1;  // Nollataan buttonNumber seuraavaa painallusta varten
+        int pressedButton = buttonNumber - 2;  // Convert button number to match LED (0-3)
+        checkGame(pressedButton);              // Check if the press was correct
+        buttonNumber = -1;  // Reset button number for the next press
     }
 }
 
 ////////// THE END & HIGHSCORE //////////
 void endGame() {
-    // Lasketaan kokonaispisteet
+    // Calculate the total score
     int totalScore = (hundredMultiplier * 100) + correctPressCount;
 
-    // Tallennetaan highscore vain jos uusi tulos on parempi
+    // Save the highscore only if the new score is better
     if (totalScore > highscore.getHighscore()) {
-        highscore.setHighscore(totalScore);  // Päivitetään Highscore
+        highscore.setHighscore(totalScore);  // Update Highscore
     }
 
-    // Nollataan pelin muuttujat seuraavaa peliä varten
-    correctPressCount = 0; // Nollataan oikeiden painallusten laskuri
-    hundredMultiplier = 0; // Nollataan sadan pisteen kerroin
-    gameJustStarted = false; // Pelin aloitustila nollataan
-    gameStarted = false; // Merkitään peli päättyneeksi
+    // Reset game variables for the next round
+    correctPressCount = 0;  // Reset correct press counter
+    hundredMultiplier = 0;  // Reset hundred multiplier
+    gameJustStarted = false; // Reset the game start state
+    gameStarted = false; // Mark the game as ended
 
-    // Sammutetaan LEDit ja näyttö
-    clearAllLeds(); // Sammutetaan LEDit
-    clearDisplay(); // Tyhjennetään 7-segmenttinäyttö
+    // Turn off LEDs and display
+    clearAllLeds(); // Turn off all LEDs
+    clearDisplay(); // Clear the 7-segment display
 }
 
-////////// TIMER1 ALUSTUKSET JA KESKEYTYKSEN KONFIGUROINTI //////////
+////////// TIMER1 INITIALIZATION AND INTERRUPT CONFIGURATION //////////
 void initializeTimer(void) {
-    float frequency = timerFrequency;  // Käytetään timerin taajuutta joka on määritelty globaalina muuttujana
+    float frequency = timerFrequency;  // Use the timer frequency defined globally
 
-    cli();  // Estetään keskeytykset konfiguroinnin ajaksi
-    TCCR1A = 0;  // Asetetaan Timer1 normaaliin tilaan
-    TCCR1B = 0;  // Nollataan Timer1
-    TCNT1 = 0;   // Nollataan Timerin laskuri
+    cli();  // Disable interrupts during configuration
+    TCCR1A = 0;  // Set Timer1 to normal mode
+    TCCR1B = 0;  // Reset Timer1
+    TCNT1 = 0;   // Reset Timer1 counter
 
-    // Lasketaan keskeytysväli
+    // Calculate the interrupt interval
     int compareMatch = (int)(16000000 / (1024 * frequency)) - 1;
 
-    OCR1A = compareMatch;  // Asetetaan ajastimen keskeytysarvo
-    TCCR1B |= (1 << WGM12);  // CTC-tila
-    TCCR1B |= (1 << CS12) | (1 << CS10);  // Asetetaan prescaler 1024
+    OCR1A = compareMatch;  // Set the timer interrupt value
+    TCCR1B |= (1 << WGM12);  // CTC mode
+    TCCR1B |= (1 << CS12) | (1 << CS10);  // Set prescaler to 1024
 
-    TIMSK1 |= (1 << OCIE1A);  // Mahdollistetaan Timer1 Compare Match A keskeytys
-    sei();  // Mahdollistetaan keskeytykset konfiguroinnin jälkeen
+    TIMSK1 |= (1 << OCIE1A);  // Enable Timer1 Compare Match A interrupt
+    sei();  // Enable interrupts after configuration
 }
 
-////////// TIMER1 COMPARE MATCH A KESKEYTYSTURIINI //////////
+////////// TIMER1 COMPARE MATCH A INTERRUPT HANDLER //////////
 ISR(TIMER1_COMPA_vect) {
-    newTimerInterrupt = true;  // Asetetaan keskeytyslippu - uusi ajastinkeskeytys tapahtuu
+    newTimerInterrupt = true;  // Set the interrupt flag - a new timer interrupt has occurred
 }
