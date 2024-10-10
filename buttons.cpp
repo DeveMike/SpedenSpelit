@@ -1,38 +1,38 @@
-#include "buttons.h" // Napinpainallusten käsittely
+#include "buttons.h" // Handling button presses
 
-extern volatile int buttonNumber;  // Käytetään buttonNumber tilan viestimiseen
-extern bool gameStarted;  // Viitataan pääohjelmassa määriteltyyn muuttujaan
-unsigned long buttonPressStartTime = 0;   // Tallennetaan painalluksen aloitusaika
-bool buttonBeingHeld = false;  // Muuttuja seuraa onko nappi pidetty alas painettuna
+extern volatile int buttonNumber;  // Used for communicating button number state
+extern bool gameStarted;  // References the variable defined in the main program
+unsigned long buttonPressStartTime = 0;   // Store the start time of the button press
+bool buttonBeingHeld = false;  // Variable to track if the button is being held down
 
 ////////// DEBOUNCE //////////
 unsigned long lastDebounceTime = 0;
-const unsigned long debounceDelay = 300;  // 300 millisekunnin debounce viive
+const unsigned long debounceDelay = 300;  // 300 milliseconds debounce delay
 
-////////// PAINIKKEIDEN JA KESKEYTYSTEN ALUSTUS //////////
+////////// BUTTON AND INTERRUPT INITIALIZATION //////////
 void initButtonsAndButtonInterrupts(void) {
-    // Alustetaan pelin painikkeet (pinnit 2-5) sisääntuloiksi
+    // Initialize the game buttons (pins 2-5) as inputs
     for (byte pin = firstPin; pin <= lastPin; pin++) {
-        pinMode(pin, INPUT_PULLUP);  // Sisäinen pull-up vastus käytössä
+        pinMode(pin, INPUT_PULLUP);  // Internal pull-up resistor enabled
     }
 
-    // Otetaan käyttöön Pin Change Interrupt keskeytykset D väylälle (pinnit 2-5)
-    PCICR |= (1 << PCIE2);  // Ota käyttöön portin D (pin 16-23) tilan muutoksen keskeytykset
-    PCMSK2 |= (1 << PCINT18) | (1 << PCINT19) | (1 << PCINT20) | (1 << PCINT21); // Ota käyttöön keskeytykset
-    //pinneille 2, 3, 4 ja 5, jotta ne huomaavat muutokset
+    // Enable Pin Change Interrupt for port D (pins 2-5)
+    PCICR |= (1 << PCIE2);  // Enable pin change interrupts for port D (pin 16-23)
+    PCMSK2 |= (1 << PCINT18) | (1 << PCINT19) | (1 << PCINT20) | (1 << PCINT21); // Enable interrupts
+    // for pins 2, 3, 4, and 5 to detect changes
 }
 
-////////// KESKEYTYKSEN KÄSITTELY JA DEBOUNCING //////////
+////////// INTERRUPT HANDLING AND DEBOUNCING //////////
 ISR(PCINT2_vect) {
-    // Tarkistetaan onko debounce aika kulunut
+    // Check if the debounce time has elapsed
     unsigned long currentTime = millis();
     if ((currentTime - lastDebounceTime) > debounceDelay) {
-        // Tarkistetaan mikä nappi on painettu ja päivitetään buttonNumber
+        // Check which button is pressed and update buttonNumber
         for (byte pin = firstPin; pin <= lastPin; pin++) {
-            if (digitalRead(pin) == LOW) {  // Jos painike on painettu
-                buttonNumber = pin;  // Päivitä buttonNumber
-                lastDebounceTime = currentTime;  // Päivitä debounce-ajastin
-                break;  // Lopeta tarkistus ensimmäisen painetun napin kohdalla
+            if (digitalRead(pin) == LOW) {  // If the button is pressed
+                buttonNumber = pin;  // Update buttonNumber
+                lastDebounceTime = currentTime;  // Update debounce timer
+                break;  // Stop checking at the first pressed button
             }
         }
     }
