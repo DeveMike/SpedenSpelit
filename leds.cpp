@@ -1,72 +1,72 @@
-#include "leds.h" // LEDien hallinta
+#include "leds.h" // LED control
 
-////////// LEDIEN PINNIT //////////
-const byte ledPins[] = {A1, A2, A3, A4};  // Ledit ovat pinneissä A1-A4
-byte lastLed = 255;  // Alustetaan arvolla joka ei ole minkään oikean ledin numero
+////////// LED PIN ASSIGNMENTS //////////
+const byte ledPins[] = {A1, A2, A3, A4};  // LEDs are connected to pins A1-A4
+byte lastLed = 255;  // Initialize with a value that is not a valid LED number
 
-////////// LEDIEN ALUSTUS //////////
+////////// LED INITIALIZATION //////////
 void initializeLeds() {
-    // Alustetaan kaikki pelissä käytettävät LEDit (4 kappaletta)
+    // Initialize all LEDs used in the game (4 total)
     for (byte i = 0; i < 4; i++) {
-        pinMode(ledPins[i], OUTPUT);  // Määritetään jokainen LED pinni lähtötilaan
-        digitalWrite(ledPins[i], LOW);  // Sammutetaan kaikki LEDit alussa
+        pinMode(ledPins[i], OUTPUT);  // Set each LED pin to output mode
+        digitalWrite(ledPins[i], LOW);  // Turn off all LEDs initially
     }
 }
 
-////////// LEDIEN SYTYTYS JA SAMMUTUS //////////
+////////// TURN ON/OFF LEDS //////////
 void setLed(byte ledNumber) {
-    // Jos jokin LED on jo päällä ja se ei ole sama kuin uusi LED niin sammutetaan se
+    // If a LED is already on and it's not the same as the new LED, turn it off
     if (lastLed != 255 && lastLed != ledNumber) {
-        digitalWrite(ledPins[lastLed], LOW);  // Sammutetaan edellinen LED
+        digitalWrite(ledPins[lastLed], LOW);  // Turn off the previous LED
     }
-    // Sytytetään uusi LED
+    // Turn on the new LED
     digitalWrite(ledPins[ledNumber], HIGH);
-    lastLed = ledNumber;  // Päivitetään viimeksi sytytetty LED
+    lastLed = ledNumber;  // Update the last turned-on LED
 }
 
-////////// LEDIEN SAMMUTUS //////////
+////////// TURN OFF ALL LEDS //////////
 void clearAllLeds() {
     for (byte i = 0; i < 4; i++) {
-        digitalWrite(ledPins[i], LOW);  // Sammutetaan kaikki LEDit
+        digitalWrite(ledPins[i], LOW);  // Turn off all LEDs
     }
-    lastLed = 255;  // Nollataan viimeksi sytytetty LED
+    lastLed = 255;  // Reset the last turned-on LED
 }
 
-////////// LEDIEN SYTYTYS //////////
+////////// TURN ON ALL LEDS //////////
 void setAllLeds() {
     for (byte i = 0; i < 4; i++) {
-        digitalWrite(ledPins[i], HIGH);  // Sytytetään kaikki LEDit
+        digitalWrite(ledPins[i], HIGH);  // Turn on all LEDs
     }
 }
 
-////////// LEDIEN BINÄÄRIESITYS NUMEROILLE 0-15 //////////
+////////// BINARY REPRESENTATION OF NUMBERS 0-15 WITH LEDS //////////
 void show1() {
-    // Näytetään numerot 0-15 binääriesityksinä LEDeillä
+    // Show numbers 0-15 as binary representations with the LEDs
     for (int i = 0; i < 16; i++) {
         for (byte j = 0; j < 4; j++) {
             if (i & (1 << j)) {
-                digitalWrite(ledPins[j], HIGH);  // Sytytä LED jos bitti on 1
+                digitalWrite(ledPins[j], HIGH);  // Turn on LED if the bit is 1
             } else {
-                digitalWrite(ledPins[j], LOW);   // Sammuta LED jos bitti on 0
+                digitalWrite(ledPins[j], LOW);   // Turn off LED if the bit is 0
             }
         }
-        delay(500);  // Pieni viive jotta binääriesitys näkyy
+        delay(500);  // Small delay so the binary display is visible
     }
 }
 
-////////// LEDIEN SYTYTYS NOPEUTUVASSA TAHDISSA //////////
+////////// TURN ON LEDS IN ACCELERATING SEQUENCE //////////
 void show2(int rounds) {
-    // Sytytetään LEDit 0-3 yhä nopeammin toistuvalla tahdilla
-    int delayTime = 500;  // Alussa viive on 500 ms
+    // Turn on LEDs 0-3 in an increasingly faster sequence
+    int delayTime = 500;  // Initial delay is 500 ms
     for (int r = 0; r < rounds; r++) {
         for (byte i = 0; i < 4; i++) {
-            clearAllLeds();  // Sammutetaan kaikki ennen uuden sytyttämistä
-            digitalWrite(ledPins[i], HIGH);  // Sytytä LED 0-3
-            delay(delayTime); // Odotetaan nykyisen viiveen verran
+            clearAllLeds();  // Turn off all LEDs before lighting a new one
+            digitalWrite(ledPins[i], HIGH);  // Turn on LED 0-3
+            delay(delayTime); // Wait for the current delay duration
         }
-        // Vähennetään viivettä joka kierroksella jolloin tahti nopeutuu
+        // Reduce the delay each round, making the sequence faster
         if (delayTime > 100) {
-            delayTime -= 50;  // Vähennetään viivettä jotta tahti kiihtyy
+            delayTime -= 50;  // Decrease the delay to speed up the pattern
         }
     }
 }
