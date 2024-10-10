@@ -1,55 +1,54 @@
-#include "display.h" // Näytön hallintaan liittyvät funktiot
-#include <Arduino.h> // Arduinon peruskirjasto
+#include "display.h" // Functions related to display control
+#include <Arduino.h> // Arduino core library
 
-extern int latchPin; // Siirtorekisterin latch pinni
-extern int clockPin; // Siirtorekisterin kellopinni
-extern int dataPin; // Siirtorekisterin datapinni
-extern byte sevenSegDigits[]; // Taulukko 7-segmenttinäytön numeroille
+extern int latchPin; // Latch pin for the shift register
+extern int clockPin; // Clock pin for the shift register
+extern int dataPin; // Data pin for the shift register
+extern byte sevenSegDigits[]; // Array for the 7-segment display numbers
 
-////////// NÄYTÖN ALOITUS //////////
+////////// DISPLAY INITIALIZATION //////////
 void initializeDisplay(void) {
-    pinMode(latchPin, OUTPUT); // Asetetaan latch pinni lähtötilaan
-    pinMode(clockPin, OUTPUT); // Asetetaan kellopinni lähtötilaan
-    pinMode(dataPin, OUTPUT); // Asetetaan datapinni lähtötilaan
-    digitalWrite(latchPin, LOW);  // Varmistetaan, että lähtö on alussa LOW
+    pinMode(latchPin, OUTPUT); // Set latch pin to output mode
+    pinMode(clockPin, OUTPUT); // Set clock pin to output mode
+    pinMode(dataPin, OUTPUT); // Set data pin to output mode
+    digitalWrite(latchPin, LOW);  // Ensure that output is LOW at the start
 }
 
-////////// NÄYTÖN PÄIVITYS //////////
+////////// DISPLAY UPDATE //////////
 void updateShiftRegister(int tensDigit, int onesDigit, bool showDots, int hundreds) {
-  digitalWrite(latchPin, LOW); // Valmistellaan datan lähetys siirtorekisteriin
+    digitalWrite(latchPin, LOW); // Prepare to send data to the shift register
 
-  byte onesSegment = sevenSegDigits[onesDigit]; // Haetaan oikean segmentin arvo
-  byte tensSegment = sevenSegDigits[tensDigit]; // Haetaan vasemman segmentin arvo
+    byte onesSegment = sevenSegDigits[onesDigit]; // Get value for the right segment
+    byte tensSegment = sevenSegDigits[tensDigit]; // Get value for the left segment
 
-  // Jos halutaan näyttää pisteet Highscore tilanteessa
-  if (showDots) {
-    onesSegment |= B10000000;  // Sytytetään oikean segmentin piste
-    tensSegment |= B10000000;  // Sytytetään vasemman segmentin piste
-  }
+    // If dots should be shown in high score condition
+    if (showDots) {
+        onesSegment |= B10000000;  // Turn on the dot for the right segment
+        tensSegment |= B10000000;  // Turn on the dot for the left segment
+    }
 
-  // Lisätään logiikka sadan pisteen ylityksen ilmaisuun
-  if (hundreds == 1) {
-    onesSegment |= B10000000;  // Sytytetään oikean segmentin piste
-  } else if (hundreds >= 2) {
-    onesSegment |= B10000000;  // Sytytetään oikean segmentin piste
-    tensSegment |= B10000000;  // Sytytetään vasemman segmentin piste
-  }
+    // Add logic for indicating hundreds exceeded
+    if (hundreds == 1) {
+        onesSegment |= B10000000;  // Turn on the dot for the right segment
+    } else if (hundreds >= 2) {
+        onesSegment |= B10000000;  // Turn on the dot for the right segment
+        tensSegment |= B10000000;  // Turn on the dot for the left segment
+    }
 
-  // Siirretään segmenttien arvot siirtorekisteriin
-  shiftOut(dataPin, clockPin, MSBFIRST, onesSegment);  // Lähetä oikea numero
-  shiftOut(dataPin, clockPin, MSBFIRST, tensSegment);  // Lähetä vasen numero
+    // Shift the segment values into the shift register
+    shiftOut(dataPin, clockPin, MSBFIRST, onesSegment);  // Send the right number
+    shiftOut(dataPin, clockPin, MSBFIRST, tensSegment);  // Send the left number
 
-  digitalWrite(latchPin, HIGH); // Lukitaan data siirtorekisteriin ja päivitetään näyttö
+    digitalWrite(latchPin, HIGH); // Lock the data into the shift register and update the display
 }
 
-////////// NÄYTÖN TYHJENNYS //////////
+////////// CLEAR DISPLAY //////////
 void clearDisplay() {
-    digitalWrite(latchPin, LOW); // Valmistellaan datan lähetys siirtorekisteriin
+    digitalWrite(latchPin, LOW); // Prepare to send data to the shift register
 
-    // Lähetetään nollat molemmille segmenteille
-    shiftOut(dataPin, clockPin, MSBFIRST, 0x00);  // Tyhjennä oikea numero
-    shiftOut(dataPin, clockPin, MSBFIRST, 0x00);  // Tyhjennä vasen numero
+    // Send zeros to both segments
+    shiftOut(dataPin, clockPin, MSBFIRST, 0x00);  // Clear the right number
+    shiftOut(dataPin, clockPin, MSBFIRST, 0x00);  // Clear the left number
 
-    digitalWrite(latchPin, HIGH); // Lukitaan data ja päivitetään näyttö tyhjäksi
+    digitalWrite(latchPin, HIGH); // Lock the data and clear the display
 }
-
