@@ -1,9 +1,9 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-void initializeDisplay(void); // Alustaa 7-segmenttinäytön
-void clearDisplay(); // Tyhjentää näytön ja sammuttaa kaikki segmentit
-// Päivittää 7-segmenttinäytön kymmenillä, ykkösillä, valinnaisella desimaalipisteellä ja sadoilla.
+void initializeDisplay(void); // Initializes the 7-segment display
+void clearDisplay(); // Clears the display and turns off all segments
+// Updates the 7-segment display with tens, ones, an optional decimal point, and hundreds.
 void updateShiftRegister(int tensDigit, int onesDigit, bool showDots = false, int hundreds = 0);
 
 #endif
