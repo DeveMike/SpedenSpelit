@@ -1,37 +1,37 @@
-#include <stdlib.h> // Standardi C-kirjasto
-#include <EEPROM.h> // EEPROM muisti tallennusta varten
-#include "display.h" // Näytön hallintaan liittyvät funktiot
-#include "buttons.h" // Napinpainallusten käsittely
-#include "leds.h" // LEDien hallinta
-#include "SpedenSpelit.h" // Pääohjelman otsikkotiedosto
-#include "highscore.h" // Highscore käsittely
-#include "sound.h" // Ääniefektit
+#include <stdlib.h> // Standard C library
+#include <EEPROM.h> // EEPROM memory for storage
+#include "display.h" // Functions related to display management
+#include "buttons.h" // Handling button presses
+#include "leds.h" // LED management
+#include "SpedenSpelit.h" // Main program header file
+#include "highscore.h" // Highscore handling
+#include "sound.h" // Sound effects
 
-////////// VIRRANSÄÄSTÖTILA //////////
-unsigned long lastActivityTime = 0;  // Aika viimeisestä toiminnosta
-const unsigned long inactivityPeriod = 60000;  // odota 1 minuutti (60000 ms)
-bool deviceSleeping = false;  // Onko laite lepotilassa vai ei
+////////// POWER SAVING MODE //////////
+unsigned long lastActivityTime = 0;  // Time of last activity
+const unsigned long inactivityPeriod = 60000;  // wait for 1 minute (60000 ms)
+bool deviceSleeping = false;  // Is the device in sleep mode or not
 
-////////// PELIN TILAMUUTTUJAT JA KESKEYTYKSET //////////
-// Volatile muuttujat keskeytysten ja ohjelman viestintään
-volatile int buttonNumber = -1;           // Painetun napin tunnistus
-volatile bool newTimerInterrupt = false;  // Timer keskeytys
+////////// GAME STATE VARIABLES AND INTERRUPTS //////////
+// Volatile variables for interrupts and program communication
+volatile int buttonNumber = -1;           // Identification of the pressed button
+volatile bool newTimerInterrupt = false;  // Timer interrupt
 
-int currentLed = -1;  // Pitää kirjaa mikä LED on tällä hetkellä sytytetty
-int correctPressCount = 0;  // Oikeiden painallusten määrä
-int hundredMultiplier = 0;  // Seuraa, montako kertaa pistemäärä on ylittänyt 99
-float timerFrequency = 1.0;  // Timer1:n aloitustaajuus on 1 Hz
-bool gameStarted = false; // Onko peli käynnissä
-bool gameJustStarted = false;  // Peli on juuri aloitettu
+int currentLed = -1;  // Keeps track of which LED is currently lit
+int correctPressCount = 0;  // Number of correct presses
+int hundredMultiplier = 0;  // Tracks how many times the score has exceeded 99
+float timerFrequency = 1.0;  // Timer1's initial frequency is 1 Hz
+bool gameStarted = false; // Is the game running
+bool gameJustStarted = false;  // The game has just started
 
-Highscore highscore;  // Luodaan Highscore olio
+Highscore highscore;  // Create a Highscore object
 
-////////// SEGMENTTINÄYTÖN SIIRTOREKISRERIN PINNIT //////////
-int latchPin = 10;  // Kytketty ST_CP:hen 74HC595:ssä
-int clockPin = 11;  // Kytketty SH_CP:hen 74HC595:ssä
-int dataPin = 12;   // Kytketty DS:ään 74HC595:ssä
+////////// SHIFT REGISTER PINS FOR SEGMENT DISPLAY //////////
+int latchPin = 10;  // Connected to ST_CP on 74HC595
+int clockPin = 11;  // Connected to SH_CP on 74HC595
+int dataPin = 12;   // Connected to DS on 74HC595
 
-////////// TAULUKKO NUMEROILLE 0-9 SEGMENTTINÄYTÖLLE //////////
+////////// ARRAY FOR NUMBERS 0-9 FOR SEGMENT DISPLAY //////////
 byte sevenSegDigits[] = {
   B00111111, // 0
   B00000110, // 1
@@ -45,86 +45,86 @@ byte sevenSegDigits[] = {
   B01101111  // 9
 };
 
-////////// VIRRANSÄÄSTÖTILAN HALLINTA //////////
+////////// POWER SAVING MODE MANAGEMENT //////////
 void wakeUp() {
-    // Tyhjä funktio. Tämä herättää Arduinon lepotilasta
+    // Empty function. This wakes the Arduino from sleep mode
 }
 
 void sleepModeInterruptsSetup() {
-    // Alustetaan keskeytys joka herättää laitteen napista D2
+    // Set up the interrupt that wakes the device from button D2
     attachInterrupt(digitalPinToInterrupt(2), wakeUp, LOW);
 }
 
 void enterSleepMode() {
-    Serial.println("Laitetaan laite lepotilaan...");
+    Serial.println("Putting the device to sleep...");
 
-    // Sammutetaan kaikki LEDit ja näyttö
+    // Turn off all LEDs and display
     clearAllLeds();
     clearDisplay();
 
-    deviceSleeping = true;  // Asetetaan laite lepotilaan
+    deviceSleeping = true;  // Set the device to sleep mode
 
-    // Alustetaan sleep mode
+    // Set up sleep mode
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     sleep_enable();
 
-    // Nollataan keskeytysliput
+    // Clear interrupt flags
     EIFR = bit (INTF0);
 
-    // Mahdollistetaan keskeytykset herättämään laite
+    // Allow interrupts to wake the device
     sleepModeInterruptsSetup();
 
-    // Menään lepotilaan. Laite pysähtyy tässä kohtaa
-    endGame(); // Lopeta peli
-    sleep_mode(); // Mene nukkumaan
+    // Enter sleep mode. The device will stop here
+    endGame(); // End the game
+    sleep_mode(); // Go to sleep
 
-    // Tästä eteenpäin laite jatkaa, kun D2 on painettu ja se herää lepotilasta
+    // From this point, the device continues when D2 is pressed and it wakes from sleep
 
-    sleep_disable();  // Poistetaan lepotila käytöstä
-    detachInterrupt(digitalPinToInterrupt(2));  // Poistetaan keskeytys käytöstä kun laite hereillä
+    sleep_disable();  // Disable sleep mode
+    detachInterrupt(digitalPinToInterrupt(2));  // Disable interrupt when the device is awake
 
-    deviceSleeping = false; // Laitteen tila pois lepotilasta
-    Serial.println("Laite heräsi lepotilasta.");
-    lastActivityTime = millis();  // Päivitetään viimeisin aktiivisuusaika jotta lepotila voidaan laskea uudestaan tarvittaessa
+    deviceSleeping = false; // Device status is out of sleep mode
+    Serial.println("The device woke up from sleep.");
+    lastActivityTime = millis();  // Update the last activity time so that sleep mode can be recalculated if necessary
 }
 
 ////////// SETUP //////////
 void setup() {
-    initializeGameComponents(); // Alustetaan kaikki komponentit
-    initializeSpeaker(); // Alustetaan kaiutin
-    lastActivityTime = millis();  // Alustetaan viimeisin aktiivisuusaika
-    detachInterrupt(digitalPinToInterrupt(2)); // Varmistetaan, että ei ole päällekkäisiä keskeytyksiä
-    ///resetHighscore();  // Nollaa highscore (tätä käytetään vain testauksen aikana)
+    initializeGameComponents(); // Initialize all components
+    initializeSpeaker(); // Initialize speaker
+    lastActivityTime = millis();  // Initialize last activity time
+    detachInterrupt(digitalPinToInterrupt(2)); // Ensure there are no overlapping interrupts
+    ///resetHighscore();  // Reset highscore (this is used only during testing)
 }
 
 ////////// LOOP //////////
 void loop() {
-    unsigned long currentTime = millis(); // Tallennetaan nykyinen aika millisekunteina
-    // Tarkistetaan onko jotain nappia painettu
+    unsigned long currentTime = millis(); // Store current time in milliseconds
+    // Check if any button is pressed
     if (digitalRead(2) == LOW || digitalRead(3) == LOW || digitalRead(4) == LOW || digitalRead(5) == LOW) {
-        lastActivityTime = currentTime;  // Päivitetään viimeisin aktiivisuusaika kun nappia on painettu
+        lastActivityTime = currentTime;  // Update last activity time when a button is pressed
     }
     
-    // Tarkistetaan onko laite lepotilassa
+    // Check if the device is in sleep mode
     if (!deviceSleeping) {
-        // Jos peli ei ole vielä alkanut niin tarkistetaan aloitusehdot
+        // If the game hasn't started yet, check the start conditions
         if (!gameStarted) {
             checkStartCondition();
         }
-        // Jos peli on käynnissä niin suoritetaan pelin pääsilmukka
+        // If the game is running, execute the main game loop
         if (gameStarted) {
             handleGameLoop();
         }
-        // Tarkistetaan, onko kulunut tarpeeksi aikaa viimeisestä napin painalluksesta
+        // Check if enough time has passed since the last button press
         if (currentTime - lastActivityTime >= inactivityPeriod) {
-            enterSleepMode();  // Laitetaan laite lepotilaan
+            enterSleepMode();  // Put the device to sleep
         }
     }
 }
 
-////////// TÄMÄ ON DEBUGGAUSTA VARTEN //////////
+////////// THIS IS FOR DEBUGGING //////////
 void resetHighscore() {
-  // Nollataan high score tallentamalla arvo 0 EEPROM muistiin
-  EEPROM.update(0, 0);             // Alempi tavu
-  EEPROM.update(1, 0);             // Ylempi tavu
+  // Reset the high score by storing the value 0 in EEPROM memory
+  EEPROM.update(0, 0);             // Lower byte
+  EEPROM.update(1, 0);             // Upper byte
 }
