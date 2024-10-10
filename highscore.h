@@ -1,15 +1,15 @@
 #ifndef HIGHSCORE_H
 #define HIGHSCORE_H
 
-#include <EEPROM.h> // EEPROM muisti tallennusta varten
+#include <EEPROM.h> // EEPROM memory for storage
 
 class Highscore {
 public:
-  Highscore(); // Alustetaan Highscore olio
-  void setHighscore(int newScore); // Uusi highscore
-  int getHighscore(); // Palauttaa tallennetun highscoren EEPROM:sta
+  Highscore(); // Initializes the Highscore object
+  void setHighscore(int newScore); // Sets a new highscore
+  int getHighscore(); // Returns the stored highscore from EEPROM
 private:
-  const int highscoreAddress = 0; // EEPROM-osoite, johon highscore tallennetaan
+  const int highscoreAddress = 0; // EEPROM address where the highscore is stored
 };
 
 #endif
