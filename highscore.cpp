@@ -1,25 +1,25 @@
-#include "highscore.h" // Highscore käsittely
+#include "highscore.h" // Highscore management
 
-////////// ENNÄTYKSEN ALUSTUS //////////
+////////// INITIALIZE THE HIGH SCORE //////////
 Highscore::Highscore() {
-  // Voimme alustaa highscoreksi 0, jos EEPROM:ssa ei ole arvoa
+  // We can initialize the highscore to 0 if there is no value in the EEPROM
   if (EEPROM.read(highscoreAddress) == 0xFF) {
-    setHighscore(0); // Asetetaan highscore arvoksi 0
+    setHighscore(0); // Set the highscore to 0
   }
 }
 
-////////// ENNÄTYKSEN TALLENNUS //////////
+////////// SAVE THE HIGH SCORE //////////
 void Highscore::setHighscore(int newScore) {
-  // Tallennetaan highscore kahteen EEPROM-osoitteeseen (2 tavua)
-  EEPROM.update(highscoreAddress, newScore & 0xFF);             // Alempi tavu
-  EEPROM.update(highscoreAddress + 1, (newScore >> 8) & 0xFF);  // Ylempi tavu
+  // Save the highscore to two EEPROM addresses (2 bytes)
+  EEPROM.update(highscoreAddress, newScore & 0xFF);             // Lower byte
+  EEPROM.update(highscoreAddress + 1, (newScore >> 8) & 0xFF);  // Upper byte
 }
 
-////////// ENNÄTYKSEN LUKEMINEN EEPROM MUISTISTA //////////
+////////// READ THE HIGH SCORE FROM EEPROM MEMORY //////////
 int Highscore::getHighscore() {
-  // Luetaan highscore kahdesta EEPROM-osoitteesta
-  int lowerByte = EEPROM.read(highscoreAddress); // Luetaan alempi tavu
-  int upperByte = EEPROM.read(highscoreAddress + 1); // Luetaan ylempi tavu
-  // Yhdistetään ylempi ja alempi tavu 16-bittiseksi luvuksi ja palautetaan highscore
-  return (upperByte << 8) | lowerByte; // Siirretään ylempi tavu 8 bittiä vasemmalle ja yhdistetään alempaan tavuun
+  // Read the highscore from two EEPROM addresses
+  int lowerByte = EEPROM.read(highscoreAddress); // Read the lower byte
+  int upperByte = EEPROM.read(highscoreAddress + 1); // Read the upper byte
+  // Combine the upper and lower bytes into a 16-bit number and return the highscore
+  return (upperByte << 8) | lowerByte; // Shift the upper byte 8 bits to the left and combine with the lower byte
 }
