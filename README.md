@@ -18,7 +18,7 @@ Tämä projekti on osa Oulun ammattikorkeakoulun ”Tietotekniikan sovellusproje
 
 # Asennus
 •	Asennusta varten tulet tarvitsemaan seuraavat komponentit: Arduino Uno – tai vastaava, 4kpl BROADCOM HLMP-4740 LED – tai vastaava, 4kpl PANASONIC ESE20C321 Painiketta, 2kpl KINGBRIGHT SC52-11EWA 7-segment näyttöä, 2kpl TEXAS INSTRUMENTS SN74HC595N Siirtorekisteriä, Crowtail KAIUTIN, tarvittava määrä hyppylankoja, vastuksia sekä riittävän ison kytkentäalustan. Halutessasi voit myös juottaa komponentit piirilevylle ja koteloida laitteen.
-![Mediasisältö](https://github.com/user-attachments/assets/76196727-fdce-494c-8a63-3245fbde83be)
+![Mediasisältö](https://github.com/user-attachments/assets/0fc59c87-1206-473f-9d1a-f863519c6c72)
 
 •	Kytkentä tulee suorittaa kytkentäkaavion mukaisesti, jotta peli tulee toimimaan ohjelmistokoodin mukaisesti. Erityishuomiota tarvitaan painikkeiden sekä LED valojen kanssa, jotta nämä ovat kytketty oikeisiin portteihin Arduino:ssa
 
