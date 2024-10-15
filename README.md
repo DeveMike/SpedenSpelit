@@ -36,6 +36,30 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 •	**Video Presentation:** A practical demonstration showing the completed device in action.
 https://youtu.be/qdzAhDunAkY
 
+# Directory Structure
+
+SpedenSpelit/
+├── LICENSE.md                # The license file specifying terms for using this project.
+├── README.md                 # The main README file explaining the project.
+├── SpedenSpelit.cpp          # Core logic of the SpedenSpelit game.
+├── SpedenSpelit.h            # Header file for the SpedenSpelit game logic.
+├── SpedenSpelit.ino          # Arduino script, the main entry point for the game.
+├── buttons/
+│   ├── buttons.cpp           # Handles the logic for button presses and interactions.
+│   └── buttons.h             # Header file for button functionality.
+├── display/
+│   ├── display.cpp           # Controls the 7-segment display outputs.
+│   └── display.h             # Header file for the display functionality.
+├── highscore/
+│   ├── highscore.cpp         # Manages the high score logic and data storage.
+│   └── highscore.h           # Header file for the high score functionality.
+├── leds/
+│   ├── leds.cpp              # Controls the LED lighting sequences in the game.
+│   └── leds.h                # Header file for LED functionality.
+├── sound/
+│   ├── sound.cpp             # Manages sound effects and sound output.
+│   └── sound.h               # Header file for sound functionality.
+
 # Assembly
 **Required Components:**
 
