@@ -17,7 +17,7 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 
 # Contents
 
-- [Introduction](#Speden Spelit Reaction Game – Arduino Edition)
+- [Introduction](#speden-spelit-reaction-game--arduino-edition)
 - [Directory Structure](#directory-structure)
 - [Technical Specifications](#technical-specifications)
   - [Circuit Diagram](#circuit-diagram)
