@@ -19,7 +19,10 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 
 # Technical Specifications
 
-•	**Circuit Diagram:** The project includes a circuit diagram that shows how the game’s electronic components, such as buttons, LEDs, buzzers, 7-segment displays, and shift registers, are connected to the Arduino. 
+•	**Circuit Diagram:** The project includes a circuit diagram that shows how the game’s electronic components, such as buttons, LEDs, buzzers, 7-segment displays, and shift registers, are connected to the Arduino.
+
+
+
 
 <img width="1124" alt="Screenshot 2024-10-15 at 15 12 37" src="https://github.com/user-attachments/assets/fcd38a9b-6b49-4dce-ad9e-ea7b2446d286">
 
