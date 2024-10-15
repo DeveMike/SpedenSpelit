@@ -34,6 +34,8 @@ https://youtu.be/qdzAhDunAkY
 
 • Arduino Uno (or equivalent)
 
+• Arduino IDE
+
 • 4x BROADCOM HLMP-4740 LEDs (or equivalent)
 
 • 4x PANASONIC ESE20C321 Buttons
