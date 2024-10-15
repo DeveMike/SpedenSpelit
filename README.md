@@ -15,20 +15,32 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 
 ![promo2](https://github.com/user-attachments/assets/f8ad9e48-5bbe-4b00-b72d-6d8116a723de)
 
-# Sisältö
+# Contents
 
-# Tekniset tiedot
-•	Kytkentäkaavio: Projekti sisältää kytkentäkaavion, joka näyttää, miten pelin elektroniikkakomponentit, kuten painikkeet, LED-valot, summerit, 7-segment taulut sekä siirtorekisterit on kytketty Arduinoon. 
+# Technical Specifications
 
-•	Vuokaavio: Selittää pelin toimintalogiikan ja erilaisten toimintojen vuorovaikutuksen, mikä auttaa hahmottamaan pelin kulkua.
+•	**Circuit Diagram:** The project includes a circuit diagram that shows how the game’s electronic components, such as buttons, LEDs, buzzers, 7-segment displays, and shift registers, are connected to the Arduino. 
+
+•	**Flowchart:** Explains the game’s logic and the interaction between different functions, helping to visualize the game’s flow.
 
 
-•	Kooditiedostot: Ohjelmakoodi on jaettu modulaarisiin osiin, kuten painikkeiden, näyttöjen, pisteiden laskennan ja ääniefektien käsittelyyn.
+•	**Code Files:** The program code is divided into modular sections, such as handling buttons, displays, score calculation, and sound effects.
 
-•	Videoesitys: Käytännön demonstraatio, joka näyttää valmiin laitteen toiminnassa.
+•	**Video Presentation:** A practical demonstration showing the completed device in action.
+https://youtu.be/qdzAhDunAkY
 
-# Asennus
-•	Asennusta varten tulet tarvitsemaan seuraavat komponentit: Arduino Uno – tai vastaava, 4kpl BROADCOM HLMP-4740 LED – tai vastaava, 4kpl PANASONIC ESE20C321 Painiketta, 2kpl KINGBRIGHT SC52-11EWA 7-segment näyttöä, 2kpl TEXAS INSTRUMENTS SN74HC595N Siirtorekisteriä, Crowtail KAIUTIN, tarvittava määrä hyppylankoja, vastuksia sekä riittävän ison kytkentäalustan. Halutessasi voit myös juottaa komponentit piirilevylle ja koteloida laitteen.
+# Assembly
+•Required Components:
+
+Arduino Uno (or equivalent)
+4x BROADCOM HLMP-4740 LEDs (or equivalent)
+4x PANASONIC ESE20C321 Buttons
+2x KINGBRIGHT SC52-11EWA 7-segment displays
+2x TEXAS INSTRUMENTS SN74HC595N Shift Registers
+Crowtail Speaker
+A sufficient amount of jumper wires and resistors
+A breadboard large enough to accommodate the components
+If preferred, you can also solder the components to a printed circuit board (PCB) and enclose the device in a case.
 
 ![Mediasisältö](https://github.com/user-attachments/assets/0fc59c87-1206-473f-9d1a-f863519c6c72)
 
