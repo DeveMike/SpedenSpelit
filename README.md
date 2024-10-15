@@ -30,7 +30,7 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 https://youtu.be/qdzAhDunAkY
 
 # Assembly
-•Required Components:
+**Required Components:**
 
 Arduino Uno (or equivalent)
 4x BROADCOM HLMP-4740 LEDs (or equivalent)
