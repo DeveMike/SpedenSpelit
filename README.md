@@ -30,6 +30,9 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 
 •	**Code Files:** The program code is divided into modular sections, such as handling buttons, displays, score calculation, and sound effects.
 
+<img width="211" alt="Screenshot 2024-10-15 at 15 40 37" src="https://github.com/user-attachments/assets/ef2d5b4e-e004-434c-86c5-8dccc8ac24fa">
+
+
 •	**Video Presentation:** A practical demonstration showing the completed device in action.
 https://youtu.be/qdzAhDunAkY
 
