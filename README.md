@@ -33,14 +33,23 @@ https://youtu.be/qdzAhDunAkY
 **Required Components:**
 
 • Arduino Uno (or equivalent)
+
 • 4x BROADCOM HLMP-4740 LEDs (or equivalent)
+
 • 4x PANASONIC ESE20C321 Buttons
+
 • 2x KINGBRIGHT SC52-11EWA 7-segment displays
+
 • 2x TEXAS INSTRUMENTS SN74HC595N Shift Registers
+
 • Crowtail Speaker
+
 • A sufficient amount of jumper wires and resistors
+
 • A breadboard large enough to accommodate the components
+
 • If preferred, you can also solder the components to a printed circuit board (PCB) and enclose the device in a case.
+
 
 ![Mediasisältö](https://github.com/user-attachments/assets/0fc59c87-1206-473f-9d1a-f863519c6c72)
 
