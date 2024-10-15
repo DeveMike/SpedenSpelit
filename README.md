@@ -1,4 +1,4 @@
-# Speden Spelit reaktiopeli – Arduino Edition
+# Speden Spelit Reaction Game – Arduino Edition
 
 
 **Speden Spelit** is an Arduino-based reaction and speed game, inspired by the Finnish TV show of the same name from the 1990s. The player’s goal is to collect points by pressing the button corresponding to the lit LED as quickly as possible.
