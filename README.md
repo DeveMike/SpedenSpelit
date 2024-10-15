@@ -53,13 +53,13 @@ https://youtu.be/qdzAhDunAkY
 
 ![Mediasisältö](https://github.com/user-attachments/assets/0fc59c87-1206-473f-9d1a-f863519c6c72)
 
-Serial Monitorin tapahtuma seuranta:
+# Serial Monitor Event Tracking:
 
 <img width="268" alt="Screenshot 2024-10-11 at 14 09 56" src="https://github.com/user-attachments/assets/fc799035-19d4-499e-88e8-967aa2689f7c">
 
 
-•	Kytkentä tulee suorittaa kytkentäkaavion mukaisesti, jotta peli tulee toimimaan ohjelmistokoodin mukaisesti. Erityishuomiota tarvitaan painikkeiden sekä LED valojen kanssa, jotta nämä ovat kytketty oikeisiin portteihin Arduino:ssa
+•	**Connections:** The wiring must be done according to the circuit diagram to ensure the game works as intended by the software code. Special attention is needed with the buttons and LEDs to ensure they are connected to the correct ports on the Arduino.
 
-•	Pelin toteutusta varten tarvitset tietokoneellesi ARDUINO IDE ohjelmiston. Ohjelmiston kautta voit ladata kaikki tiedostot suoraa Arduino:lle.
+•	**Software Requirements:** You will need the Arduino IDE installed on your computer. Through the IDE, you can upload all files directly to the Arduino.
 
-•	Ohjelmakoodin lataaminen SpedenSpelit_v2_6.ino -tiedostosta ja tarvittavien .cpp ja .h tiedostojen lisääminen.
+•	**Uploading Code:** Upload the program code from the SpedenSpelit_v2_6.ino file, and make sure to include the necessary .cpp and .h files.
