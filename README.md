@@ -17,6 +17,12 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 
 # Contents
 
+- [Directory Structure](#directory-structure)
+- [Technical Specifications](#technical-specifications)
+- [Assembly](#assembly)
+- [Serial Monitor Event Tracking](#serial-monitor-event-tracking)
+- [MIT License](#mit-license)
+  
 # Directory Structure
 
 ``` SpedenSpelit/
