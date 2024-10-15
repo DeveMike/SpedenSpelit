@@ -49,7 +49,8 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 
 •	**Flowchart:** Explains the game’s logic and the interaction between different functions, helping to visualize the game’s flow.
 
-<img width="795" alt="Screenshot 2024-10-15 at 15 13 28" src="https://github.com/user-attachments/assets/a457ce6e-351a-4e8a-901a-2e97b0b54861">
+<img width="787" alt="Spedenpelit_english" src="https://github.com/user-attachments/assets/6ebe7708-4461-40f4-a58c-2f507c9a2840">
+
 
 
 •	**Code Files:** The program code is divided into modular sections, such as handling buttons, displays, score calculation, and sound effects.
