@@ -20,8 +20,6 @@ This introduction presents the **Speden Spelit** device, which combines the exci
 - [Introduction](#speden-spelit-reaction-game--arduino-edition)
 - [Directory Structure](#directory-structure)
 - [Technical Specifications](#technical-specifications)
-  - [Circuit Diagram](**circuit-diagram)
-  - [Flowchart](**flowchart)
 - [Assembly](#assembly)
 - [Serial Monitor Event Tracking](#serial-monitor-event-tracking)
 - [MIT License](#mit-license)
