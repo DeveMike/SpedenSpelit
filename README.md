@@ -1,6 +1,15 @@
 # Speden Spelit reaktiopeli – Arduino Edition
 
-Tämä projekti on osa Oulun ammattikorkeakoulun ”Tietotekniikan sovellusprojekti” -kurssia.  Speden Spelit on Arduino-pohjainen reaktio- ja nopeuspeli, joka on saanut inspiraationsa suomalaisesta Speden Spelit-ohjelman peleistä. Pelissä pelaaja testaa reaktioaikaansa ja nopeuttaan yrittäen painaa syttyvää lediä vastaavaa nappia tarpeeksi nopeasti saadakseen pisteen. Peli alkaa, kun pelaaja pitää oikeanpuoleista alanappia 2 sekuntia painettuna. Tämän jälkeen kuuluu aloitusääni ja peli alkaa. LEDien vilkkumistahti on alussa 1 Hz ja tahtia nopeutetaan 10 % kymmenen oikean painalluksen jälkeen. Peli loppuu, jos pelaaja painaa väärin tai jättää painamatta. Peli tallentaa parhaan pistemäärän, ja paras tulos näkyy 7-segmenttinäytöllä. Jos laitetta ei käytetä minuuttiin, se menee virransäästötilaan. Laite herää, kun pelaaja painaa oikeanpuoleista alanappia kerran.
+**Speden Spelit** is an Arduino-based reaction and speed game, inspired by the Finnish TV show of the same name from the 1990s. The player’s goal is to collect points by pressing the button corresponding to the lit LED as quickly as possible.
+
+The device is assembled using Arduino and several components, such as shift registers, 7-segment displays, a speaker, LEDs, and resistors, following a circuit diagram. All components are carefully soldered, installed in a case, and tested for functionality. The Arduino power cable is the only external physical element. The code is modularly programmed, making it easy to extend the game’s features as needed.
+
+The game starts by holding the start button for 2 seconds. After that, a start sound plays, and the first LED lights up. The player’s objective is to press the correct button as soon as the corresponding light turns on. After every 10 successful presses, the LED blink speed increases by 10%. The game ends if the player presses the wrong button or fails to press the correct button in time.
+
+During gameplay, the 7-segment displays indicate the game’s progress with the help of sound cues. When the player reaches 100 points, the first decimal point on the display lights up, showing that the score exceeds 99. This repeats at 200 points when the second decimal point turns on. At the end of the game, the score is saved to the device’s memory, where the player’s high score is displayed. If the device is inactive for 60 seconds, it automatically switches to power-saving mode. The device can be reactivated by pressing the start button once.
+
+This introduction presents the **Speden Spelit** device, which combines the excitement of a traditional game with modern electronics. The project was carried out as part of the *Tietotekniikan sovellusprojekti* (Application Project in Information Technology) course at Oulu University of Applied Sciences.
+
 
 ![promo2](https://github.com/user-attachments/assets/f8ad9e48-5bbe-4b00-b72d-6d8116a723de)
 
